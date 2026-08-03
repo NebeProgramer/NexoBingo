@@ -1,0 +1,13 @@
+<svg width="680" height="680" viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Logo NexoBingo</title>
+<desc>Una balota de bingo dorada sobre fondo oscuro con las letras B roja y N verde tejidas en el centro, cruzándose y alternando cuál va por encima en cada intersección.</desc>
+<circle cx="340" cy="340" r="260" fill="#101823" stroke="#F2B705" stroke-width="14"/>
+<path d="M 200 160 A 220 220 0 0 1 420 90" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="30" stroke-linecap="round"/>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path d="M 250 180 C 340 175, 400 205, 400 260 C 400 315, 340 335, 255 335" stroke="#E8534B" stroke-width="42"/>
+<path d="M 230 480 L 230 190 L 325 335" stroke="#2ECC71" stroke-width="42"/>
+<path d="M 250 180 L 250 490" stroke="#E8534B" stroke-width="42"/>
+<path d="M 255 335 C 350 335, 410 365, 410 425 C 410 480, 345 495, 250 490" stroke="#E8534B" stroke-width="42"/>
+<path d="M 325 335 L 420 480 L 420 190" stroke="#2ECC71" stroke-width="42"/>
+</g>
+</svg>
