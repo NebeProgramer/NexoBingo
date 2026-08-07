@@ -15,6 +15,7 @@
  */
 package com.mycompany.virtual_bingo.RMI;
 
+import com.mycompany.virtual_bingo.Game_Objects.Ballots;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -31,8 +32,20 @@ public interface BingoService extends Remote {
     /** Da inicio a la partida: a partir de aquí pollState() ya incluye el cartón. */
     void startGame() throws RemoteException;
 
-    /** Saca la siguiente balota del tablero. */
-    void drawNextBallot() throws RemoteException;
+    /**
+     * Saca la siguiente balota del tablero.
+     *
+     * IMPORTANTE: devuelve la balota recién sacada (o {@code null} si no
+     * quedan balotas o el juego no ha iniciado) para que quien la pidió
+     * -normalmente el panel del anfitrión, ver {@code GameServerUI}- se
+     * entere de inmediato por la respuesta de ESTA llamada, en vez de
+     * depender de su propio ciclo de polling. Como este método es
+     * {@code synchronized} del lado del servidor, ningún cliente puede
+     * ver la balota nueva en {@link #pollState} hasta que esta llamada
+     * ya haya terminado ahí — así se garantiza que el anfitrión siempre
+     * se entera (y puede "cantarla") antes que cualquier cliente.
+     */
+    Ballots drawNextBallot() throws RemoteException;
 
     /**
      * Un jugador reclama BINGO. A diferencia del resto de eventos (que se

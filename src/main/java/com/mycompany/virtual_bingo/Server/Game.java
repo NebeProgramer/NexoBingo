@@ -166,22 +166,26 @@ public class Game extends UnicastRemoteObject implements BingoService, BingoHost
     }
 
     @Override
-    public synchronized void drawNextBallot() throws RemoteException {
+    public synchronized Ballots drawNextBallot() throws RemoteException {
         if (!gameStarted) {
             System.out.println("No se puede cantar balotas: el juego no ha iniciado.");
-            return;
+            return null;
         }
 
         Ballots ballot = board.drawRandomUnused();
         if (ballot == null) {
             System.out.println("No quedan más balotas por cantar.");
-            return;
+            return null;
         }
         calledNumbers.add(ballot.getNumber());
         calledLog.add(ballot.getLetter() + "-" + ballot.getNumber());
 
         System.out.println("Balota cantada: " + ballot.getBallot());
         notifyStateChanged();
+        // Se devuelve la balota (y no solo void) para que quien la pidió se
+        // entere por esta misma respuesta, sin esperar a su propio poll.
+        // Ver el javadoc de BingoService#drawNextBallot para el porqué.
+        return ballot;
     }
 
     @Override

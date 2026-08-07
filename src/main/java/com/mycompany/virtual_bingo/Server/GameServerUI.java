@@ -11,6 +11,7 @@ package com.mycompany.virtual_bingo.Server;
 
 import com.mycompany.virtual_bingo.Broker.BingoBroker;
 import com.mycompany.virtual_bingo.Broker.GameCodeStatus;
+import com.mycompany.virtual_bingo.Game_Objects.Ballots;
 import com.mycompany.virtual_bingo.RMI.BingoService;
 import com.mycompany.virtual_bingo.UI.CardPanel;
 import com.mycompany.virtual_bingo.UI.RoundButton;
@@ -157,7 +158,18 @@ public class GameServerUI extends JFrame {
             service.startGame();
             updateBrokerStatus(GameCodeStatus.IN_GAME);
         }));
-        drawButton.addActionListener(e -> runSafely(service::drawNextBallot));
+        drawButton.addActionListener(e -> runSafely(() -> {
+            // No usamos service.drawNextBallot() "a secas": nos quedamos con
+            // la balota que devuelve para poder anunciarla (log + futuro
+            // canto por voz) apenas vuelve esta llamada — más rápido y sin
+            // depender del ciclo de polling de startPolling(), que es
+            // justo lo que causaba que a veces un cliente se enterara de
+            // la balota antes que este mismo panel del anfitrión.
+            Ballots ballot = service.drawNextBallot();
+            if (ballot != null) {
+                SwingUtilities.invokeLater(() -> announceBallot(ballot));
+            }
+        }));
         endButton.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Finalizar la partida actual? Se repartirán cartones nuevos para la siguiente ronda.",
@@ -257,6 +269,24 @@ public class GameServerUI extends JFrame {
         }, "GameServerUI-poller");
         poller.setDaemon(true);
         poller.start();
+    }
+
+    /**
+     * Se llama UNA vez por balota, apenas vuelve la respuesta de
+     * {@code drawNextBallot()} — antes de que el poll de este panel o el
+     * de cualquier cliente lleguen a verla. Este es el punto único donde,
+     * más adelante (pendiente #1), se disparará el canto por voz (wav).
+     *
+     * Actualiza el log a mano y adelanta {@link #lastLoggedBallots} para
+     * que el poller de {@link #startPolling()} no la vuelva a imprimir
+     * cuando la vea en getCalledBallotsDisplay().
+     */
+    private void announceBallot(Ballots ballot) {
+        logArea.append(ballot.getLetter() + "-" + ballot.getNumber() + "\n");
+        logArea.setCaretPosition(logArea.getDocument().getLength());
+        lastLoggedBallots++;
+        // TODO (pendiente #1 - canto de balotas): reproducir aquí el wav
+        // de la letra + el wav del número correspondientes a "ballot".
     }
 
     private void applyState(List<String> players, boolean started, int calledCount, List<String> ballots) {
