@@ -31,5 +31,6 @@ com\mycompany\virtual_bingo\Server\GameServerUI$RmiAction.class
 com\mycompany\virtual_bingo\RMI\BingoService.class
 com\mycompany\virtual_bingo\Server\Game.class
 com\mycompany\virtual_bingo\Nexus\NexusUI.class
+com\mycompany\virtual_bingo\UI\UpdateChecker.class
 com\mycompany\virtual_bingo\Broker\HostedGame.class
 com\mycompany\virtual_bingo\UI\BingoBallButton.class

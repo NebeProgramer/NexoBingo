@@ -6,6 +6,25 @@ Bingo multijugador en tiempo real, escrito en Java (Swing + RMI), pensado para j
   <img src="logo/nexobingo-logo-512.png" alt="Logo de NexoBingo" width="180">
 </p>
 
+## Descarga
+
+Para jugar no hace falta compilar nada: solo necesitas tener **Java 21 o superior** instalado (JRE es suficiente).
+
+**[⬇ Descargar la última versión](https://repositorio-aeop.onrender.com/desktop/VirtualBingo)**
+
+También puedes buscar el `.zip` de cada versión en la sección [Releases](https://github.com/NebeProgramer/NexoBingo/releases) de este repositorio.
+
+1. Descarga y descomprime `NexoBingo.zip`.
+2. Ejecuta `NexoBingo.jar` con doble clic, o desde una terminal:
+
+   ```bash
+   java -jar NexoBingo.jar
+   ```
+
+La aplicación revisa automáticamente al abrirse si hay una versión más nueva disponible y te avisa con un enlace de descarga.
+
+> Esto solo instala el juego (Nexo + cliente). El Broker es un componente aparte que corre en un servidor con IP pública; ver la sección [Arquitectura](#arquitectura) más abajo.
+
 ## Qué es esto
 
 NexoBingo es un juego de bingo cliente-servidor: uno crea la sala (anfitrión), reparte los números y controla la partida; los demás se unen con un código de 6 dígitos y juegan desde su propia máquina, marcando su cartón a mano y cantando BINGO cuando crean tener uno.
@@ -87,6 +106,8 @@ java -jar target/NexoBingo.jar
 ```
 
 Se abre la ventana **Nexo**: ahí eliges **Crear partida** (te da un código de 6 dígitos para compartir) o **Unirse a partida** (pides el código a quien la creó).
+
+> La carpeta `target/` no está incluida en este repositorio (se genera al compilar). Si solo quieres jugar sin compilar, ve a la sección [Descarga](#descarga).
 
 > El Broker al que se conecta el juego está fijo en el código para producción (`NexusUI.PRODUCTION_BROKER_HOST`). Para desarrollo, hay un flag `DEV_MODE` en esa misma clase que, en `true`, muestra un campo para apuntar a otro Broker (por ejemplo uno local) sin tocar el resto del código.
 

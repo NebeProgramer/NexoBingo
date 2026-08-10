@@ -6,6 +6,7 @@ package com.mycompany.virtual_bingo;
 
 import com.mycompany.virtual_bingo.Nexus.NexusUI;
 import com.mycompany.virtual_bingo.UI.CoffeeDialog;
+import com.mycompany.virtual_bingo.UI.UpdateChecker;
 import javax.swing.SwingUtilities;
 
 /**
@@ -25,6 +26,7 @@ public class Virtual_Bingo {
             NexusUI nexus = new NexusUI();
             nexus.setVisible(true);
             CoffeeDialog.maybeShow(nexus);
+            UpdateChecker.verificar(nexus);
         });
     }
 }
