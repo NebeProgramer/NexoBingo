@@ -14,7 +14,7 @@ Para jugar no hace falta compilar nada: solo necesitas tener **Java 21 o superio
 
 También puedes buscar el `.zip` de cada versión en la sección [Releases](https://github.com/NebeProgramer/NexoBingo/releases) de este repositorio.
 
-1. Descarga y descomprime `NexoBingo.zip`.
+1. Descarga y descomprime `target.zip`.
 2. Ejecuta `NexoBingo.jar` con doble clic, o desde una terminal:
 
    ```bash
