@@ -10,7 +10,7 @@ Bingo multijugador en tiempo real, escrito en Java (Swing + RMI), pensado para j
 
 Para jugar no hace falta compilar nada: solo necesitas tener **Java 21 o superior** instalado (JRE es suficiente).
 
-**[⬇ Descargar la última versión](https://repositorio-aeop.onrender.com/desktop/VirtualBingo)**
+**[⬇ Descargar la última versión](https://github.com/NebeProgramer/NexoBingo/releases/latest/download/NexoBingo.zip)**
 
 También puedes buscar el `.zip` de cada versión en la sección [Releases](https://github.com/NebeProgramer/NexoBingo/releases) de este repositorio.
 
