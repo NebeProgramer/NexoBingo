@@ -1,0 +1,11 @@
+# Workspace de Dart: un solo `dart pub get` en la raíz resuelve los tres
+# paquetes. bingo_core es la lógica compartida; server es el Broker; app
+# es la aplicación Flutter (anfitrión en escritorio, jugadores en todo).
+name: nexobingo_workspace
+publish_to: none
+environment:
+  sdk: ^3.8.0
+workspace:
+  - packages/bingo_core
+  - server
+  - app

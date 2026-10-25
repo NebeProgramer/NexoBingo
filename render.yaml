@@ -1,0 +1,11 @@
+# Blueprint de Render: crea el servicio del Broker (plan gratuito).
+# En Render: New > Blueprint > elige este repositorio.
+services:
+  - type: web
+    name: nexobingo
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true

@@ -1,0 +1,10 @@
+**/.dart_tool
+**/build
+app/android
+app/ios
+app/linux
+app/macos
+app/windows
+**/*.iml
+.idea
+.vscode

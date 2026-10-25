@@ -1,0 +1,46 @@
+name: nexobingo
+description: "NexoBingo: bingo multijugador. Anfitrión en escritorio; jugadores en móvil, PC y web."
+publish_to: 'none'
+version: 2.0.0+1
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  bingo_core: any
+  web_socket_channel: ^3.0.3
+  shared_preferences: ^2.5.5
+  url_launcher: ^6.3.2
+  http: ^1.6.0
+  package_info_plus: ^9.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+
+# `dart run flutter_launcher_icons` (desde app/) regenera los íconos
+# de todas las plataformas a partir del logo.
+flutter_launcher_icons:
+  image_path: "assets/nexobingo-logo-1024.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    background_color: "#101823"
+    theme_color: "#101823"
+  windows:
+    generate: true
+    icon_size: 256
+  macos:
+    generate: true
