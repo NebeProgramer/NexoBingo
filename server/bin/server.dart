@@ -26,9 +26,13 @@ Future<void> main(List<String> args) async {
 
   final port = int.parse(options['port'] as String);
   final webRoot = options['web-root'] as String?;
-  final server = await startServer(broker: Broker(), port: port, webRoot: webRoot);
+  // Premium apagado por defecto. Se enciende con la variable de entorno
+  // NEXOBINGO_PREMIUM=true (en Render: Environment > Add variable).
+  final premium = Platform.environment['NEXOBINGO_PREMIUM'] == 'true';
+  final server = await startServer(broker: Broker(premium: premium), port: port, webRoot: webRoot);
 
   print('Broker de NexoBingo listo en el puerto ${server.port}.');
+  print('Funciones premium: ${premium ? 'ACTIVADAS' : 'desactivadas'}.');
   if (webRoot != null) print('Sirviendo la versión web desde $webRoot');
   print('Direcciones para conectarse:');
   print('  ws://localhost:${server.port}/ws  (esta misma máquina)');

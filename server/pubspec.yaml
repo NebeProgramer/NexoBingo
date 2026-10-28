@@ -1,7 +1,7 @@
 name: nexobingo_server
 description: Broker de NexoBingo (WebSocket + archivos estáticos del build web).
 publish_to: none
-version: 2.0.0
+version: 2.1.0
 resolution: workspace
 environment:
   sdk: ^3.8.0

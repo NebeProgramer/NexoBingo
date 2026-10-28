@@ -56,7 +56,7 @@ class _PatternGridState extends State<PatternGrid> {
       final size = constraints.biggest;
       final paint = CustomPaint(
         size: size,
-        painter: _PatternPainter(widget.pattern, widget.showLetters),
+        painter: _PatternPainter(widget.pattern, widget.showLetters, DefaultTextStyle.of(context).style.fontFamily),
       );
       if (widget.onChanged == null) return paint;
       return MouseRegion(
@@ -99,10 +99,11 @@ class _Geometry {
 }
 
 class _PatternPainter extends CustomPainter {
-  _PatternPainter(this.pattern, this.showLetters);
+  _PatternPainter(this.pattern, this.showLetters, this.fontFamily);
 
   final Pattern pattern;
   final bool showLetters;
+  final String? fontFamily; // el pintor no hereda la fuente del tema
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -116,7 +117,7 @@ class _PatternPainter extends CustomPainter {
       for (var col = 0; col < gridSize; col++) {
         final letter = Ballot.letters[col];
         _text(canvas, letter, Offset(g.origin.dx + col * cell + cell / 2, g.origin.dy - cell / 2),
-            TextStyle(color: AppColors.letter(letter), fontWeight: FontWeight.bold, fontSize: cell * 0.45));
+            TextStyle(fontFamily: fontFamily, color: AppColors.letter(letter), fontWeight: FontWeight.bold, fontSize: cell * 0.45));
       }
     }
 
@@ -147,7 +148,7 @@ class _PatternPainter extends CustomPainter {
           );
           if (isCenter(col, row)) {
             _text(canvas, 'ID', rect.center,
-                TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold, fontSize: cell * 0.3));
+                TextStyle(fontFamily: fontFamily, color: AppColors.textMuted, fontWeight: FontWeight.bold, fontSize: cell * 0.3));
           }
         }
       }

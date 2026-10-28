@@ -38,12 +38,20 @@ class Room {
 enum _Role { none, host, player }
 
 class Broker {
-  Broker({this.hostGrace = const Duration(seconds: 60), Random? random})
-      : _random = random ?? Random.secure();
+  Broker({
+    this.hostGrace = const Duration(seconds: 60),
+    this.premium = false,
+    Random? random,
+  }) : _random = random ?? Random.secure();
 
   /// Tiempo que se espera a que el anfitrión se reconecte antes de cerrar
   /// la sala y liberar su código.
   final Duration hostGrace;
+
+  /// Interruptor global de las funciones premium (varios cartones,
+  /// historial exportable, salas de más de 10 jugadores). Mientras sea
+  /// false, el servidor las rechaza aunque una app las pida.
+  final bool premium;
   final Random _random;
   final Map<String, Room> rooms = {};
 
@@ -61,14 +69,21 @@ class Broker {
     return code;
   }
 
-  String _newToken() =>
-      List.generate(16, (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+  String _newToken() => List.generate(
+    16,
+    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
 
   /// Empuja el estado actual a todos los conectados de la sala.
   void broadcast(Room room) {
     room.host?.send(encodeMessage(Msg.hostState, hostStateOf(room).toJson()));
     for (final seat in room.seats.values) {
-      seat.peer?.send(encodeMessage(Msg.playerState, playerStateOf(room, seat.tableId).toJson()));
+      seat.peer?.send(
+        encodeMessage(
+          Msg.playerState,
+          playerStateOf(room, seat.tableId).toJson(),
+        ),
+      );
     }
   }
 
@@ -82,7 +97,12 @@ class Broker {
       code: room.code,
       players: [
         for (final p in game.players)
-          PlayerInfo(name: p.name, tableId: p.tableId, connected: connected.contains(p.tableId)),
+          PlayerInfo(
+            name: p.name,
+            tableId: p.tableId,
+            connected: connected.contains(p.tableId),
+            wins: p.wins,
+          ),
       ],
       started: game.started,
       called: [for (final b in game.called) b.number],
@@ -91,6 +111,12 @@ class Broker {
       roundId: game.roundId,
       winnerTableId: game.lastWinnerTableId,
       winnerRoundId: game.lastWinnerRoundId,
+      premium: game.premium,
+      maxPlayers: game.maxPlayers,
+      allowAutoMark: game.allowAutoMark,
+      cardsPerPlayer: game.cardsPerPlayer,
+      // El historial es premium: sin premium ni siquiera viaja.
+      history: game.premium ? List.of(game.history) : const [],
     );
   }
 
@@ -101,12 +127,24 @@ class Broker {
       tableId: tableId,
       roundId: game.roundId,
       started: game.started,
-      card: game.cardFor(tableId),
+      cards: game.cardsFor(tableId) ?? const [],
       called: [for (final b in game.called) b.number],
       mode: game.mode,
       pattern: game.winPattern,
       winnerTableId: game.lastWinnerTableId,
       winnerRoundId: game.lastWinnerRoundId,
+      winnerCardId: game.lastWinnerCardId,
+      allowAutoMark: game.allowAutoMark,
+      winners: [
+        for (final p in game.players)
+          if (p.wins > 0)
+            PlayerInfo(
+              name: p.name,
+              tableId: p.tableId,
+              connected: true,
+              wins: p.wins,
+            ),
+      ],
     );
   }
 
@@ -157,8 +195,13 @@ class Connection {
     if (_role == _Role.host && identical(room.host, _peer)) {
       room.host = null;
       room.closeTimer?.cancel();
-      room.closeTimer = Timer(_broker.hostGrace, () => _broker.closeRoom(room, 'El anfitrión cerró la sala.'));
-      _broker.log('Anfitrión de ${room.code} desconectado; esperando ${_broker.hostGrace.inSeconds}s.');
+      room.closeTimer = Timer(
+        _broker.hostGrace,
+        () => _broker.closeRoom(room, 'El anfitrión cerró la sala.'),
+      );
+      _broker.log(
+        'Anfitrión de ${room.code} desconectado; esperando ${_broker.hostGrace.inSeconds}s.',
+      );
     } else if (_role == _Role.player && identical(_seat?.peer, _peer)) {
       _seat!.peer = null;
       _broker.broadcast(room);
@@ -176,7 +219,7 @@ class Connection {
         _resume(msg['code'] as String? ?? '', msg['token'] as String? ?? '');
       case Msg.leave:
         _leave();
-      case Msg.setMode || Msg.start || Msg.draw || Msg.end:
+      case Msg.setMode || Msg.setOptions || Msg.start || Msg.draw || Msg.end:
         _hostCommand(type, msg);
       case Msg.sing:
         _sing();
@@ -196,7 +239,11 @@ class Connection {
       _error('Esta conexión ya pertenece a una sala.');
       return;
     }
-    final room = Room(_broker._newCode(), _broker._newToken(), Game());
+    final room = Room(
+      _broker._newCode(),
+      _broker._newToken(),
+      Game(premium: _broker.premium),
+    );
     _broker.rooms[room.code] = room;
     room.host = _peer;
     _role = _Role.host;
@@ -221,6 +268,7 @@ class Connection {
       _error('Ese código no corresponde a ninguna sala abierta.');
       return;
     }
+    // El tope de jugadores (10 gratis, 200 premium) lo aplica Game.register.
     if (room.game.started) {
       _error('Esa partida ya está en juego. Espera a que termine la ronda.');
       return;
@@ -233,7 +281,12 @@ class Connection {
     _room = room;
     _seat = seat;
     _broker.log('$name se unió a ${room.code} (cartón #${player.tableId}).');
-    _send(Msg.joined, {'code': room.code, 'token': token, 'tableId': player.tableId, 'name': name});
+    _send(Msg.joined, {
+      'code': room.code,
+      'token': token,
+      'tableId': player.tableId,
+      'name': name,
+    });
     _broker.broadcast(room);
   }
 
@@ -260,7 +313,12 @@ class Connection {
       _room = room;
       _seat = seat;
       final name = room.game.playerById(seat.tableId)?.name ?? '';
-      _send(Msg.joined, {'code': room.code, 'token': token, 'tableId': seat.tableId, 'name': name});
+      _send(Msg.joined, {
+        'code': room.code,
+        'token': token,
+        'tableId': seat.tableId,
+        'name': name,
+      });
     } else {
       _error('Tu sesión en esta sala expiró.', fatal: true);
       return;
@@ -292,7 +350,18 @@ class Connection {
     final game = room.game;
     switch (type) {
       case Msg.setMode:
-        game.setGameMode(GameMode.fromName(msg['mode'] as String?), decodePattern(msg['pattern'] as String?));
+        game.setGameMode(
+          GameMode.fromName(msg['mode'] as String?),
+          decodePattern(msg['pattern'] as String?),
+        );
+      case Msg.setOptions:
+        // Cada opción es independiente y opcional.
+        if (msg['allowAutoMark'] case final bool allow) {
+          game.setAllowAutoMark(allow);
+        }
+        if (msg['cardsPerPlayer'] case final int count) {
+          game.setCardsPerPlayer(count);
+        }
       case Msg.start:
         game.start();
       case Msg.draw:
@@ -317,7 +386,9 @@ class Connection {
       return;
     }
     final result = room.game.sing(seat.tableId);
-    _broker.log('Cartón #${seat.tableId} canta BINGO en ${room.code}: ${result.valid ? 'VÁLIDO' : 'falso'}.');
+    _broker.log(
+      'Cartón #${seat.tableId} canta BINGO en ${room.code}: ${result.valid ? 'VÁLIDO' : 'falso'}.',
+    );
     _send(Msg.singResult, {'valid': result.valid, 'message': result.message});
     if (result.valid) _broker.broadcast(room);
   }

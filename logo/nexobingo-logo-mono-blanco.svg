@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img">
+  <title>Logo NexoBingo (monocromático, blanco)</title>
+  <desc>Versión de un solo color: la N en casillas rellenas, las demás casillas como puntos, y el marco redondeado.</desc>
+  <rect x="23" y="23" width="466" height="466" rx="98" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+  <g transform="translate(80 80)">
+    <rect x="0" y="0" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="0" y="72" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="0" y="144" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="0" y="216" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="0" y="288" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <circle cx="104" cy="32" r="9" fill="#FFFFFF"/>
+    <rect x="72" y="72" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <circle cx="104" cy="176" r="9" fill="#FFFFFF"/>
+    <circle cx="104" cy="248" r="9" fill="#FFFFFF"/>
+    <circle cx="104" cy="320" r="9" fill="#FFFFFF"/>
+    <circle cx="176" cy="32" r="9" fill="#FFFFFF"/>
+    <circle cx="176" cy="104" r="9" fill="#FFFFFF"/>
+    <rect x="144" y="144" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <circle cx="176" cy="248" r="9" fill="#FFFFFF"/>
+    <circle cx="176" cy="320" r="9" fill="#FFFFFF"/>
+    <circle cx="248" cy="32" r="9" fill="#FFFFFF"/>
+    <circle cx="248" cy="104" r="9" fill="#FFFFFF"/>
+    <circle cx="248" cy="176" r="9" fill="#FFFFFF"/>
+    <rect x="216" y="216" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <circle cx="248" cy="320" r="9" fill="#FFFFFF"/>
+    <rect x="288" y="0" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="288" y="72" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="288" y="144" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="288" y="216" width="64" height="64" rx="16" fill="#FFFFFF"/>
+    <rect x="288" y="288" width="64" height="64" rx="16" fill="#FFFFFF"/>
+  </g>
+</svg>

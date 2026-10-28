@@ -126,7 +126,7 @@ void main() {
       tableId: p.tableId,
       roundId: 0,
       started: true,
-      card: game.cardFor(p.tableId),
+      cards: game.cardsFor(p.tableId)!,
       called: const [5, 70],
       mode: GameMode.ti,
       pattern: GameMode.ti.fixedPattern(),

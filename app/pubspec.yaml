@@ -1,7 +1,7 @@
 name: nexobingo
 description: "NexoBingo: bingo multijugador. Anfitrión en escritorio; jugadores en móvil, PC y web."
 publish_to: 'none'
-version: 2.0.0+1
+version: 2.1.0+2
 resolution: workspace
 
 environment:
@@ -29,12 +29,22 @@ flutter:
     - assets/
 
 # `dart run flutter_launcher_icons` (desde app/) regenera los íconos
-# de todas las plataformas a partir del logo.
+# de todas las plataformas a partir del logo (rejilla "N").
+# Las fuentes SVG de cada capa están en assets/icon/ y logo/.
 flutter_launcher_icons:
   image_path: "assets/nexobingo-logo-1024.png"
   android: true
+  # Ícono adaptativo: fondo oscuro + rejilla; Android 13+ usa la capa
+  # monocromática para los íconos temáticos.
+  adaptive_icon_background: "#101823"
+  adaptive_icon_foreground: "assets/icon/android-foreground.png"
+  adaptive_icon_monochrome: "assets/icon/android-monochrome.png"
+  # Las capas ya dejan la rejilla dentro de la zona segura: sin margen extra.
+  adaptive_icon_foreground_inset: 0
   ios: true
+  image_path_ios: "assets/icon/ios.png"
   remove_alpha_ios: true
+  background_color_ios: "#101823"
   web:
     generate: true
     background_color: "#101823"

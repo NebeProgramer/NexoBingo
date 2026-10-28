@@ -4,13 +4,17 @@ import 'dart:math' as math;
 import 'package:bingo_core/bingo_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/config.dart';
 import '../core/connection.dart';
+import '../services/export.dart';
 import '../services/settings.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/common.dart';
 import '../ui/widgets/pattern_grid.dart';
+import '../ui/widgets/premium.dart';
+import '../ui/widgets/trophy_badge.dart';
 import 'pattern_editor_dialog.dart';
 
 /// Panel del anfitrión (sucesor de `GameServerUI.java`): ver jugadores,
@@ -36,6 +40,7 @@ class _HostScreenState extends State<HostScreen> {
 
   GameConnection get _conn => widget.connection;
   bool get _started => _state?.started ?? false;
+  bool get _premium => _state?.premium ?? false;
   Pattern get _previewPattern => _mode == GameMode.personalized ? copyPattern(_customPattern) : _mode.fixedPattern();
 
   @override
@@ -115,6 +120,41 @@ class _HostScreenState extends State<HostScreen> {
     await _applyMode(GameMode.personalized);
   }
 
+  void _setAutoMark(bool allow) => _conn.send(Msg.setOptions, {'allowAutoMark': allow});
+
+  void _setCardsPerPlayer(int? count) {
+    if (count == null) return;
+    _conn.send(Msg.setOptions, {'cardsPerPlayer': count});
+  }
+
+  /// Historial de rondas (premium): lista y exportación a CSV/Excel.
+  Future<void> _openHistory() async {
+    if (!_premium) {
+      await showPremiumDialog(context, 'El historial de rondas exportable');
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => _HistoryDialog(
+        code: widget.code,
+        // Se lee del estado más reciente cada vez que se abre.
+        history: _state?.history ?? const [],
+        onExported: (path) {
+          if (path == null) {
+            _snack('No se pudo guardar el archivo.');
+            return;
+          }
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(
+              content: Text('Guardado en $path'),
+              action: SnackBarAction(label: 'Abrir', onPressed: () => launchUrl(Uri.file(path))),
+            ));
+        },
+      ),
+    );
+  }
+
   void _start() {
     // El WebSocket conserva el orden: la ronda arranca con el modo que
     // muestra el selector aunque el cambio anterior no hubiera llegado.
@@ -170,6 +210,20 @@ class _HostScreenState extends State<HostScreen> {
         appBar: AppBar(
           title: Text('NexoBingo · Sala ${widget.code}', style: const TextStyle(fontWeight: FontWeight.bold)),
           leading: IconButton(icon: const Icon(Icons.close), tooltip: 'Cerrar sala', onPressed: _askLeave),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: TextButton.icon(
+                key: const Key('history'),
+                onPressed: _openHistory,
+                icon: const Icon(Icons.history),
+                label: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Text('Historial de rondas'),
+                  if (!_premium) ...[const SizedBox(width: 6), const PremiumTag()],
+                ]),
+              ),
+            ),
+          ],
         ),
         body: Column(children: [
           ReconnectingBanner(visible: reconnecting),
@@ -179,6 +233,8 @@ class _HostScreenState extends State<HostScreen> {
               Expanded(child: _codeBlock(players.length, called.length)),
               const SizedBox(width: 16),
               _modeSelector(),
+              const SizedBox(width: 24),
+              _optionsPanel(),
             ]),
           ),
           Expanded(
@@ -300,9 +356,55 @@ class _HostScreenState extends State<HostScreen> {
     ]);
   }
 
+  /// Opciones de la sala: AutoSelector (gratis) y cartones por jugador (premium).
+  Widget _optionsPanel() {
+    final allowAuto = _state?.allowAutoMark ?? true;
+    final cards = _state?.cardsPerPlayer ?? 1;
+    return SizedBox(
+      width: 210,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Text('OPCIONES DE LA SALA',
+            style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 2),
+        Row(children: [
+          const Expanded(child: Text('Permitir marcado automático', style: TextStyle(fontSize: 13))),
+          Switch(key: const Key('allowAutoMark'), value: allowAuto, onChanged: _state == null ? null : _setAutoMark),
+        ]),
+        Row(children: [
+          const Expanded(child: Text('Cartones por jugador', style: TextStyle(fontSize: 13))),
+          if (_premium)
+            DropdownButton<int>(
+              key: const Key('cardsPerPlayer'),
+              value: cards,
+              isDense: true,
+              dropdownColor: AppColors.bgCard,
+              items: [for (var n = 1; n <= maxCardsPerPlayer; n++) DropdownMenuItem(value: n, child: Text('$n'))],
+              onChanged: _started ? null : _setCardsPerPlayer,
+            )
+          else
+            // Bloqueado hasta activar premium: muestra "1" con candado.
+            InkWell(
+              key: const Key('cardsPerPlayerLocked'),
+              borderRadius: BorderRadius.circular(6),
+              onTap: () => showPremiumDialog(context, 'Dar varios cartones a cada jugador'),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text('1', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 6),
+                  PremiumTag(),
+                ]),
+              ),
+            ),
+        ]),
+      ]),
+    );
+  }
+
   Widget _playersCard(List<PlayerInfo> players) {
+    final max = _state?.maxPlayers ?? maxPlayersFree;
     return SectionCard(
-      title: 'Jugadores (${players.length})',
+      title: 'Jugadores (${players.length}/$max)',
       child: players.isEmpty
           ? const Center(
               child: Text('Comparte el código para que se unan.',
@@ -319,6 +421,8 @@ class _HostScreenState extends State<HostScreen> {
                     Icon(Icons.circle, size: 10, color: p.connected ? AppColors.green : AppColors.textMuted),
                     const SizedBox(width: 10),
                     Expanded(child: Text(p.name, overflow: TextOverflow.ellipsis)),
+                    // Trofeo con sus victorias (solo si ya ganó alguna ronda).
+                    if (p.wins > 0) ...[TrophyBadge(wins: p.wins, size: 24), const SizedBox(width: 8)],
                     Text('#${p.tableId}', style: const TextStyle(color: AppColors.textMuted)),
                   ]),
                 );
@@ -397,6 +501,85 @@ class _HostScreenState extends State<HostScreen> {
               fontSize: size * 0.38,
               fontWeight: FontWeight.bold,
               color: on ? AppColors.bgDark : AppColors.textMuted.withValues(alpha: 0.6))),
+    );
+  }
+}
+
+/// Historial de rondas de la sala con botón para exportarlo (premium).
+class _HistoryDialog extends StatelessWidget {
+  const _HistoryDialog({required this.code, required this.history, required this.onExported});
+
+  final String code;
+  final List<RoundRecord> history;
+  final void Function(String? path) onExported;
+
+  @override
+  Widget build(BuildContext context) {
+    final rounds = history.reversed.toList(); // la más reciente primero
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 560),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text('Historial de rondas · Sala $code',
+                style: const TextStyle(color: AppColors.gold, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Expanded(
+              child: rounds.isEmpty
+                  ? const Center(
+                      child: Text('Todavía no ha terminado ninguna ronda.',
+                          style: TextStyle(color: AppColors.textMuted)))
+                  : ListView.separated(
+                      itemCount: rounds.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 6),
+                      itemBuilder: (_, i) {
+                        final r = rounds[i];
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(color: AppColors.bgCard, borderRadius: BorderRadius.circular(10)),
+                          child: Row(children: [
+                            SizedBox(
+                              width: 70,
+                              child: Text('Ronda ${r.round}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            SizedBox(width: 110, child: Text(r.mode.displayName)),
+                            Expanded(
+                              child: Text(
+                                r.winnerName == null ? 'Sin ganador' : '${r.winnerName} · #${r.winnerCardId}',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: r.winnerName == null ? AppColors.textMuted : AppColors.textLight),
+                              ),
+                            ),
+                            Text('${r.ballotsCalled} ${r.ballotsCalled == 1 ? 'balota' : 'balotas'} · ${formatDateTime(r.endedAt).substring(11)}',
+                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          ]),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 14),
+            Row(children: [
+              const Spacer(),
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
+              const SizedBox(width: 10),
+              AppButton(
+                label: 'Exportar a Excel (CSV)',
+                icon: Icons.download,
+                color: AppColors.green,
+                height: 42,
+                onPressed: rounds.isEmpty
+                    ? null
+                    : () async {
+                        final path = await saveHistoryCsv(code, history);
+                        if (context.mounted) Navigator.pop(context);
+                        onExported(path);
+                      },
+              ),
+            ]),
+          ]),
+        ),
+      ),
     );
   }
 }

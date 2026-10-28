@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Propuesta 3: balota que "transmite" (bingo en línea, en tiempo real) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A2640"/>
+      <stop offset="1" stop-color="#101823"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="0.38" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#FFD54A"/>
+      <stop offset="0.65" stop-color="#F2B705"/>
+      <stop offset="1" stop-color="#B98800"/>
+    </radialGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="104" fill="url(#bg)"/>
+  <!-- ondas concéntricas a la balota (centro 196,316), colores de N-I-B de adentro hacia afuera -->
+  <g fill="none" stroke-width="30" stroke-linecap="round">
+    <path d="M237.4 161.5 A 160 160 0 0 1 350.5 274.6" stroke="#2ECC71"/>
+    <path d="M250.4 113.2 A 210 210 0 0 1 398.8 261.6" stroke="#F08A3C"/>
+    <path d="M263.3 64.9 A 260 260 0 0 1 447.1 248.7" stroke="#E8534B"/>
+  </g>
+  <!-- balota dorada -->
+  <circle cx="196" cy="316" r="130" fill="url(#ball)"/>
+  <circle cx="196" cy="316" r="80" fill="#FFFFFF"/>
+  <!-- "N" dibujada (no depende de fuentes) -->
+  <path d="M162 356 V276 L230 356 V276" fill="none" stroke="#101823" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="148" cy="236" rx="38" ry="17" fill="#FFFFFF" opacity="0.55" transform="rotate(-30 148 236)"/>
+</svg>

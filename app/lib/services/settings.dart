@@ -16,6 +16,7 @@ class Settings {
   static const _kName = 'playerName';
   static const _kBroker = 'devBrokerUrl';
   static const _kCoffee = 'coffeeDismissedUntil';
+  static const _kAutoMark = 'autoMark';
 
   GameMode get mode {
     final mode = GameMode.fromName(_prefs.getString(_kMode));
@@ -33,6 +34,10 @@ class Settings {
     await _prefs.setString(_kMode, mode.name);
     if (customPattern != null) await _prefs.setString(_kPattern, encodePattern(customPattern));
   }
+
+  /// AutoSelector: marcar solo las balotas cantadas en el cartón.
+  bool get autoMark => _prefs.getBool(_kAutoMark) ?? false;
+  Future<void> saveAutoMark(bool value) => _prefs.setBool(_kAutoMark, value);
 
   String get playerName => _prefs.getString(_kName) ?? '';
   Future<void> savePlayerName(String name) => _prefs.setString(_kName, name);

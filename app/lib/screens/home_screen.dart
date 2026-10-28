@@ -127,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
         code: msg['code'] as String,
         tableId: msg['tableId'] as int,
         playerName: name,
+        settings: widget.settings,
       );
     });
   }
