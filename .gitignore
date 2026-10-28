@@ -22,4 +22,4 @@ app/windows/flutter/ephemeral/
 
 # Servidor compilado
 server/bin/*.exe
-docs/release-notes/2.0.0.md
+docs/release-notes/
